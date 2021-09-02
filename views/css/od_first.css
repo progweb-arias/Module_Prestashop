@@ -1,0 +1,12 @@
+.enabled:hover {
+    cursor: pointer;
+}
+
+.disabled:hover {
+    cursor: pointer;
+}
+
+.form-group label {
+    width: 6% !important;
+    text-align: left !important;
+}
