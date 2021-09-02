@@ -1,0 +1,15 @@
+{
+    "name": "webprog/od_first",
+    "autoload": {
+        "psr-4": {
+            "OrbitaDigital\\OdFirst\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Arias",
+            "email": "progweb@orbitadigital.com"
+        }
+    ],
+    "require": {}
+}
