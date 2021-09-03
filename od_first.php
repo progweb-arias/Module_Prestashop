@@ -18,8 +18,6 @@ class od_first extends Module
         $this->name = 'od_first';
         $this->author = 'AlejandroA';
         $this->version = '1.0.0';
-        $this->tab = 'front_office_features';
-        $this->need_instance = 0;
         $this->ps_versions_compliancy = ['min' => '1.6', 'max' => '1.7.99'];
         $this->bootstrap = true;
 
@@ -31,8 +29,7 @@ class od_first extends Module
     }
     public function installDb()
     {
-        $resources = new Resources();
-        return $resources->installTable();
+        return Resources::installTable();
     }
     public function install()
     {
@@ -45,8 +42,7 @@ class od_first extends Module
     }
     public function uninstallDb()
     {
-        $resources = new Resources();
-        return $resources->uninstallTable();
+        return Resources::uninstallTable();
     }
     public function uninstall()
     {
@@ -59,6 +55,13 @@ class od_first extends Module
     }
     public function getContent()
     {
-        tools::redirectAdmin($this->context->link->getAdminLink('AdminFirst'));
+        Tools::redirectAdmin($this->context->link->getAdminLink('AdminFirst'));
+    }
+    public function hookActionAdminControllerSetMedia()
+    {
+        $end_point = $this->context->link->getAdminLink('AdminFirst');
+        Media::addJsDef(['od_module' => ['end_point' => $end_point]]);
+        $this->context->controller->addJS(_MODULE_DIR_ . 'od_first/views/js/od_first.js');
+        $this->context->controller->addCss(_MODULE_DIR_ . 'od_first/views/css/od_first.css');
     }
 }
