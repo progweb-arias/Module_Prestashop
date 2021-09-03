@@ -14,9 +14,9 @@ class AdminFirstController extends ModuleAdminController
     {
         $resources = new Resources();
         return $resources->$action(
-            tools::getValue('nombre', ' '),
-            tools::getValue('edad', ' '),
-            tools::getValue('date', ' ')
+            Tools::getValue('nombre', ' '),
+            Tools::getValue('edad', ' '),
+            Tools::getValue('date', ' ')
         );
     }
     public function ajaxProcessValidate()
@@ -34,13 +34,13 @@ class AdminFirstController extends ModuleAdminController
     public function ajaxProcessUpdate()
     {
         $resources = new Resources();
-        $resultados = $resources->update((int)tools::getValue('id', 0));
+        $resultados = $resources->update((int)Tools::getValue('id', 0));
         die(json_encode($resultados));
     }
-    public function ajaxProcessUpdate2()
+    public function ajaxProcessDelete()
     {
         $resources = new Resources();
-        $resultados = $resources->update2((int)tools::getValue('id', 0));
+        $resultados = $resources->delete((int)Tools::getValue('id', 0));
         die(json_encode($resultados));
     }
 
@@ -97,25 +97,21 @@ class AdminFirstController extends ModuleAdminController
     {
         $where = [];
         if (!empty($data[0])) {
-            $where[] = " $word > '$data[0]'";
+            $where[] = "$word >= '$data[0]'";
         }
         if (!empty($data[1])) {
-            $where[] = " $word < '$data[1]'";
+            $where[] = "$word <= '$data[1]'";
         }
         return $where;
     }
     public function pagination()
     {
         $page = Tools::getValue('submitFilterod_first_formulario', 1);
-        $pagination = Tools::getValue('od_first_formulario_pagination', 10);
+        $pagination = Tools::getValue('od_first_formulario_pagination', 100);
         $inicio = 0;
         if ($page > 1) {
-            if ($page == 2) {
-                $limit = " LIMIT $pagination,$pagination ";
-            } else {
-                $inicio = ($page * $pagination) - $pagination;
-                $limit = " LIMIT $inicio,$pagination ";
-            }
+            $inicio = ($page * $pagination) - $pagination;
+            $limit = " LIMIT $inicio,$pagination ";
         } else {
             $limit = " LIMIT 0,$pagination";
         }
@@ -123,39 +119,32 @@ class AdminFirstController extends ModuleAdminController
     }
     public function getQuery()
     {
-        $result = 'SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario ';
         $where = [];
         foreach ($_POST as $key => $i) {
-            if (strstr($key, 'od_first_formularioFilter') && !strstr($key, 'local_od_first_formularioFilter')) {
-                if (!strstr($key, 'fecha_creacion') && !strstr($key, 'fecha_modificacion') && !strstr($key, 'fecha_borrado')) {
-                    $palabra = substr(strrchr($key, '_'), 1);
+            if (strstr($key, 'od_first_formularioFilter')  && !strstr($key, 'local_od_first_formularioFilter')) {
+                $palabra = substr($key, 26, strlen($key) - 1);
+                if ($palabra != 'fecha' &&  $palabra != 'fecha_creacion' && $palabra != 'fecha_modificacion' && $palabra != 'fecha_borrado') {
                     if (isset($i)) {
-                        if ($palabra != 'fecha') {
-                            if ($palabra == 'nombre') {
-                                $where[] =  " $palabra LIKE '$i%'";
-                            } else {
-                                if (!empty($i)) {
-                                    $where[] = " $palabra = '$i'";
-                                }
-                            }
+                        if ($palabra == 'nombre') {
+                            $where[] =  "$palabra LIKE '$i%'";
                         } else {
-                            foreach ($this->dataQuery($palabra, $i) as $key => $i) {
-                                $where[] = "$i";
-                            };
+                            if (!empty($i)) {
+                                $where[] = "$palabra = '$i'";
+                            }
                         }
-                    }
-                } else {
-                    $palabra = substr($key, strpos($key, '_', 13) + 1, strlen($key) - 1);
-                    if (isset($i)) {
-                        foreach ($this->dataQuery($palabra, $i) as $key => $i) {
-                            $where[] = "$i";
-                        };
                     }
                 }
             }
+            if (strstr($key, 'local_od_first_formularioFilter')) {
+                $palabra = substr($key, 32, strlen($key) - 1);
+                foreach ($this->dataQuery($palabra, $i) as $key => $i) {
+                    $where[] = "$i";
+                }
+            }
         }
+        $result = 'SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario ';
         if (count($where) > 0) {
-            $result = 'SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario WHERE';
+            $result .= 'WHERE ';
         }
         if (Tools::getValue('od_first_formularioOrderby')) {
             $field = Tools::getValue('od_first_formularioOrderby');
@@ -163,6 +152,7 @@ class AdminFirstController extends ModuleAdminController
             $sentence = " ORDER BY $field $order";
         }
         $result .= implode(' AND ', $where) . $sentence;
+        dump($where);
         return $result;
     }
 
@@ -175,24 +165,19 @@ class AdminFirstController extends ModuleAdminController
     public function list()
     {
         $list = new HelperList();
-        if (!Tools::isSubmit('submitResetod_first_formulario')) {
-            $total = Db::getInstance()->executeS($this->getQuery());
-            $resultado = Db::getInstance()->executeS($this->getQuery() . $this->pagination());
-        } else {
-            $total = Db::getInstance()->executeS('SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario ');
-            $resultado = Db::getInstance()->executeS('SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario ' . $this->pagination());
-        }
+        $total = Db::getInstance()->executeS($this->getQuery());
+        $resultado = Db::getInstance()->executeS($this->getQuery() . $this->pagination());
         $list->simple_header = false;
         $list->shopLinkType = '';
         $list->no_link = true;
-        $list->orderBy = tools::getValue('od_first_formularioOrderby');
-        $list->orderWay = tools::getValue('od_first_formularioOrderway');
+        $list->orderBy = Tools::getValue('od_first_formularioOrderby');
+        $list->orderWay = Tools::getValue('od_first_formularioOrderway');
         $list->_pagination = array(1, 5, 10, 100, 200);
-        $list->_default_pagination = 10;
+        $list->_default_pagination = 100;
         $list->listTotal = count($total);
+        $list->token = Tools::getAdminTokenLite('AdminFirst');
         $list->identifier = 'id';
         $list->table = 'od_first_formulario';
-        $list->token = Tools::getAdminTokenLite('AdminFirst');
         $list->currentIndex = AdminController::$currentIndex;
 
 
@@ -243,10 +228,23 @@ class AdminFirstController extends ModuleAdminController
                 'type' => 'datetime',
             ),
         );
+        if (Tools::isSubmit('submitResetod_first_formulario')) {
+            AdminController::processResetFilters($fields_list);
+            $total = Db::getInstance()->executeS($this->getQuery());
+            $resultado = Db::getInstance()->executeS($this->getQuery() . $this->pagination());
+        }
+        if (Tools::isSubmit('submitFilterod_first_formulario')) {
+            $fecha[] = Tools::getValue('local_od_first_formularioFilter_fecha');
+            $fecha_creaccion[] = Tools::getValue('local_od_first_formularioFilter_fecha_creacion');
+            $fecha_modificacion[] = Tools::getValue('local_od_first_formularioFilter_fecha_modificacion');
+            $fecha_borrado[] = Tools::getValue('local_od_first_formularioFilter_fecha_borrado');
+        }
         return $list->generateList($resultado, $fields_list);
     }
     public function initContent()
     {
+        dump($_POST);
+        dump($_GET);
         $check = 0;
         if (Tools::isSubmit('submitFilterod_first_formulario') || Tools::getValue('od_first_formularioOrderby')) {
             $check = 1;
@@ -267,10 +265,5 @@ class AdminFirstController extends ModuleAdminController
                 'content' => $tpl
             ]
         );
-
-        $end_point = $this->context->link->getAdminLink('AdminFirst');
-        Media::addJsDef(['od_module' => ['end_point' => $end_point]]);
-        $this->context->controller->addJS(_MODULE_DIR_ . 'od_first/views/js/od_first.js');
-        $this->context->controller->addCss(_MODULE_DIR_ . 'od_first/views/css/od_first.css');
     }
 }
