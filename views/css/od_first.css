@@ -1,8 +1,4 @@
-.enabled:hover {
-    cursor: pointer;
-}
-
-.disabled:hover {
+.enabled:hover, .disabled:hover {
     cursor: pointer;
 }
 
