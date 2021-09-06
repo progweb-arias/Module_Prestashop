@@ -22,40 +22,22 @@ function dataDelete(){
     const id=parseInt($(this).closest('tr').find('td').html());
     return{
         ajax:1,
-        action: "Update2",
+        action: "Delete",
         id:id,
     }
 }
-function callapi(action,success){
+function callapi(data,success){
     $.ajax({
         method: "Post",
         url: window.od_module.end_point,
-        data: getData(action),
-        success: success,
-    })
-}
-function callapi2(success){
-    $.ajax({
-        method:"Post",
-        url: window.od_module.end_point,
-        data: dataCheck.call(this),
-        context: this,
-        success: success,
-    })
-}
-function callapi3(success){
-    $.ajax({
-        method:"Post",
-        url: window.od_module.end_point,
-        data: dataDelete.call(this),
+        data: data,
         context: this,
         success: success,
     })
 }
 $(document).on('click','#validar',function(){
-    callapi("Validate",function(data){
+    callapi(getData("Validate"),function(data){
         resultados=JSON.parse(data);
-        console.log(resultados);
         resultados.error.forEach(function(error) {
             $('#'+error).removeClass('alert alert-danger').removeClass('alert alert-success');
             $('#'+error).addClass('alert alert-danger');
@@ -67,9 +49,8 @@ $(document).on('click','#validar',function(){
     });
 })
 $(document).on('click','#guardar',function(){
-    callapi("Save",function(data){
+    callapi(getData("Save"),function(data){
         resultados=JSON.parse(data);
-        console.log(resultados);
         if(resultados !== true){
             resultados.error.forEach(function(error) {
                 $('#'+error).removeClass('alert alert-danger').removeClass('alert alert-success');
@@ -95,23 +76,27 @@ $(document).ready(function(){
     $("img[alt='disabled.gif']").addClass('disabled');
 })
 $(document).on('click',"img[alt='disabled.gif']",function(){
-    callapi2.call(this, function(data){
+    let pregunta=confirm("Deseas activar el campo?")
+    if(pregunta==true){
+    callapi.call(this,dataCheck.call(this), function(data){
         resultados=JSON.parse(data);
-        let pregunta=confirm("Deseas activar el campo?")
-        if(pregunta==true){
+        // $("button[name='submitFilter']").trigger("click");
             location.reload();
-        }
+            // $("#profile").addClass("active in");
+            // $("#home").removeClass("active in");
+            
     }) 
+    }
 })
 $(document).on('click',"img[alt='enabled.gif']",function(){
-    callapi3.call(this, function(data){
+    let pregunta=confirm("Deseas borrar el campo?")
+    if(pregunta==true){
+    callapi.call(this,dataDelete.call(this), function(data){
         resultados=JSON.parse(data);
-        let pregunta=confirm("Deseas borrar el campo?")
-        if(pregunta==true){
-            location.reload();
-        }
+        location.reload();
+        // $("#profile").addClass("active in");
+        // $("#home").removeClass("active in");
     })
+    }
 })
-$(document).on('click',"button[name='submitResetod_first_formulario']",function(){
-    $("input[class='filter']").val('')
-})
+
