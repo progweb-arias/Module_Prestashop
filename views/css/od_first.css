@@ -1,4 +1,13 @@
-.enabled:hover, .disabled:hover {
+#disabled {
+    color: red;
+}
+
+#enabled {
+    color: green;
+}
+
+#enabled:hover,
+#disabled:hover {
     cursor: pointer;
 }
 
