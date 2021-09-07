@@ -1,13 +1,13 @@
 function getData(action){
     const nombre=$('#nombre').val();
     const edad=$('#edad').val();
-    const date=$('#date').val();
+    const fecha=$('#date').val();
     return{
         ajax:1,
         action: action,
         nombre: nombre,
         edad: edad,
-        date: date,
+        fecha: fecha,
     }
 }
 function dataCheck(){
@@ -72,31 +72,23 @@ $(document).on('click','#guardar',function(){
 $(document).ready(function(){
     $( '#date' ).attr("autocomplete","off");
     $( '#date' ).datepicker();
-    $("img[alt='enabled.gif']").addClass('enabled');
-    $("img[alt='disabled.gif']").addClass('disabled');
 })
-$(document).on('click',"img[alt='disabled.gif']",function(){
+$(document).on('click',"i[id='disabled']",function(){
     let pregunta=confirm("Deseas activar el campo?")
     if(pregunta==true){
     callapi.call(this,dataCheck.call(this), function(data){
         resultados=JSON.parse(data);
-        // $("button[name='submitFilter']").trigger("click");
-            location.reload();
-            // $("#profile").addClass("active in");
-            // $("#home").removeClass("active in");
-            
+            location.reload();   
     }) 
     }
 })
-$(document).on('click',"img[alt='enabled.gif']",function(){
+$(document).on('click',"i[id='enabled']",function(){
     let pregunta=confirm("Deseas borrar el campo?")
     if(pregunta==true){
     callapi.call(this,dataDelete.call(this), function(data){
         resultados=JSON.parse(data);
         location.reload();
-        // $("#profile").addClass("active in");
-        // $("#home").removeClass("active in");
     })
     }
 })
-
+ 
