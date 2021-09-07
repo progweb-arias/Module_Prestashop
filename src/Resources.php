@@ -41,8 +41,8 @@ class Resources
     {
         $variable = $this->validate($nombre, $edad, $fecha);
         if (count($variable['correcto']) == 3) {
-            $fecha = date('Y-m-d', strtotime($fecha));
-            return Db::getInstance()->execute("INSERT INTO " . _DB_PREFIX_ . "od_first_formulario(nombre,edad,fecha,fecha_creacion,fecha_modificacion,borrado,fecha_borrado) VALUES('$nombre',$edad,'$fecha',NOW(),NOW(), 0, NULL)");
+            $fecha2 = date('Y-m-d', strtotime($fecha));
+            return Db::getInstance()->execute("INSERT INTO " . _DB_PREFIX_ . "od_first_formulario(nombre,edad,fecha,fecha_creacion,fecha_modificacion,borrado,fecha_borrado) VALUES('$nombre',$edad,'$fecha2',NOW(),NOW(), 0, NULL)");
         }
         return $variable;
     }
@@ -66,17 +66,17 @@ class Resources
      * @param string $fecha_hasta
      * @param string $borrado es la opcion de on y off de si esta borrado
      * @param string $fecha_eleccion
-     * @param string $page que son los botones de las paginas
+     * @param string $pagina que son los botones de las paginas
      * 
      * @return array
      */
-    public function search(string $nombre, string $fecha_desde, string $fecha_hasta, string $borrado, string $fecha_eleccion, string $page)
+    public function search(string $nombre, string $fecha_desde, string $fecha_hasta, string $borrado, string $fecha_eleccion, string $pagina)
     {
         $array = ['Nombre' => $nombre, 'Fecha_creacion' => $fecha_desde, 'Fecha_creacion2' => $fecha_hasta, 'deleted' => $borrado];
         $query = "SELECT * FROM "  . _DB_PREFIX_ .  "formulario WHERE ";
         $where = [];
         $rows = 5;
-        $page = intval($page);
+        $page = intval($pagina);
         $limit = ($page * $rows);
         $offset = $rows;
         foreach ($array as $columna => $valor) {
