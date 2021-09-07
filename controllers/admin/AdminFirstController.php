@@ -4,10 +4,14 @@ use OrbitaDigital\OdFirst\Resources;
 
 class AdminFirstController extends ModuleAdminController
 {
+    public $iconCheck;
+    public $iconClose;
     public function __construct()
     {
-        parent::__construct();
+        $this->iconCheck = 'check';
+        $this->iconClose = 'close';
         $this->bootstrap = true;
+        parent::__construct();
     }
 
     public function procesarDatos($action)
@@ -16,7 +20,7 @@ class AdminFirstController extends ModuleAdminController
         return $resources->$action(
             Tools::getValue('nombre', ' '),
             Tools::getValue('edad', ' '),
-            Tools::getValue('date', ' ')
+            Tools::getValue('fecha', ' ')
         );
     }
     public function ajaxProcessValidate()
@@ -107,14 +111,12 @@ class AdminFirstController extends ModuleAdminController
     public function pagination()
     {
         $page = Tools::getValue('submitFilterod_first_formulario', 1);
-        $pagination = Tools::getValue('od_first_formulario_pagination', 100);
+        $pagination = Tools::getValue('od_first_formulario_pagination', 20);
         $inicio = 0;
         if ($page > 1) {
             $inicio = ($page * $pagination) - $pagination;
-            $limit = " LIMIT $inicio,$pagination ";
-        } else {
-            $limit = " LIMIT 0,$pagination";
         }
+        $limit = " LIMIT $inicio,$pagination";
         return $limit;
     }
     public function getQuery()
@@ -123,7 +125,6 @@ class AdminFirstController extends ModuleAdminController
         foreach ($_POST as $key => $i) {
             if (strpos($key, 'local') === 0) {
                 $palabra = str_replace('local_od_first_formularioFilter_', '', $key);
-                echo $palabra;
                 foreach ($this->dataQuery($palabra, $i) as $key => $i) {
                     $where[] = "$i";
                 }
@@ -131,7 +132,6 @@ class AdminFirstController extends ModuleAdminController
             }
             if (strpos($key, 'od_first_formularioFilter') === 0) {
                 $palabra = str_replace('od_first_formularioFilter_', '', $key);
-                echo $palabra;
                 if (strpos($palabra, 'fecha') || empty(trim($i))) {
                     continue;
                 }
@@ -146,19 +146,24 @@ class AdminFirstController extends ModuleAdminController
         if (count($where) > 0) {
             $result .= 'WHERE ';
         }
-        $orderby = Tools::getValue('od_first_formularioOrderby');
-        $orderway = Tools::getValue('od_first_formularioOrderway');
-        if ($orderby) {
-            $sentence = " ORDER BY $orderby $orderway";
-        }
-        $result .= implode(' AND ', $where) . $sentence;
+        $result .= implode(' AND ', $where);
         $_POST['od_first_formularioFilter_fecha'] = $_POST['local_od_first_formularioFilter_fecha'];
         $_POST['od_first_formularioFilter_fecha_creacion'] = $_POST['local_od_first_formularioFilter_fecha_creacion'];
         $_POST['od_first_formularioFilter_fecha_modificacion'] = $_POST['local_od_first_formularioFilter_fecha_modificacion'];
         $_POST['od_first_formularioFilter_fecha_borrado'] = $_POST['local_od_first_formularioFilter_fecha_borrado'];
         return $result;
     }
-
+    public function getIcons($value)
+    {
+        $this->context->smarty->assign(
+            [
+                'icono' => $value,
+                'enabled' => $this->iconCheck,
+                'disabled' => $this->iconClose,
+            ]
+        );
+        return $this->context->smarty->fetch('file:C:/xampp/htdocs/prestashop/modules/od_first/views/templates/admin/icons.tpl');
+    }
     public function deleteLine($nombre)
     {
         $resources = new Resources();
@@ -168,16 +173,18 @@ class AdminFirstController extends ModuleAdminController
     public function list()
     {
         $list = new HelperList();
-        $total = Db::getInstance()->executeS($this->getQuery());
-        $resultado = Db::getInstance()->executeS($this->getQuery() . $this->pagination());
+        $list->orderBy = 'id';
+        $list->orderWay = 'asc';
+        if (Tools::getValue('od_first_formularioOrderby')) {
+            $list->orderBy = Tools::getValue('od_first_formularioOrderby');
+            $list->orderWay = Tools::getValue('od_first_formularioOrderway');
+        }
+        $sentence = " ORDER BY $list->orderBy $list->orderWay";
         $list->simple_header = false;
         $list->shopLinkType = '';
         $list->no_link = true;
-        $list->orderBy = Tools::getValue('od_first_formularioOrderby', 'id');
-        $list->orderWay = Tools::getValue('od_first_formularioOrderway', 'asc');
         $list->_pagination = [1, 5, 10, 20, 50];
         $list->_default_pagination = 20;
-        $list->listTotal = count($total);
         $list->token = Tools::getAdminTokenLite('AdminFirst');
         $list->identifier = 'id';
         $list->table = 'od_first_formulario';
@@ -220,10 +227,7 @@ class AdminFirstController extends ModuleAdminController
                 'width' => 140,
                 'type' => 'number',
                 'search' => false,
-                'icon' => [
-                    0 => 'enabled.gif',
-                    1 => 'disabled.gif',
-                ],
+                'callback' => 'getIcons',
             ],
             'fecha_borrado' => [
                 'title' => $this->l('Fecha de borrado'),
@@ -232,10 +236,11 @@ class AdminFirstController extends ModuleAdminController
             ],
         ];
         if (Tools::isSubmit('submitResetod_first_formulario')) {
-            AdminController::processResetFilters($fields_list);
-            $total = Db::getInstance()->executeS($this->getQuery());
-            $resultado = Db::getInstance()->executeS($this->getQuery() . $this->pagination());
+            $this->processResetFilters($fields_list);
         }
+        $total = Db::getInstance()->executeS($this->getQuery());
+        $resultado = Db::getInstance()->executeS($this->getQuery() . $sentence . $this->pagination());
+        $list->listTotal = count($total);
         return $list->generateList($resultado, $fields_list);
     }
     public function initContent()
