@@ -4,12 +4,10 @@ use OrbitaDigital\OdFirst\Resources;
 
 class AdminFirstController extends ModuleAdminController
 {
-    public $iconCheck;
-    public $iconClose;
+    public $iconCheck = 'check';
+    public $iconClose = 'close';
     public function __construct()
     {
-        $this->iconCheck = 'check';
-        $this->iconClose = 'close';
         $this->bootstrap = true;
         parent::__construct();
     }
@@ -97,17 +95,6 @@ class AdminFirstController extends ModuleAdminController
         ];
         return $form->generateForm($formulario);
     }
-    public function dataQuery($word, $data)
-    {
-        $where = [];
-        if (!empty($data[0])) {
-            $where[] = "$word >= '$data[0]'";
-        }
-        if (!empty($data[1])) {
-            $where[] = "$word <= '$data[1]'";
-        }
-        return $where;
-    }
     public function pagination()
     {
         $page = Tools::getValue('submitFilterod_first_formulario', 1);
@@ -119,14 +106,17 @@ class AdminFirstController extends ModuleAdminController
         $limit = " LIMIT $inicio,$pagination";
         return $limit;
     }
-    public function getQuery()
+    public function getQuery($orderBy, $orderWay)
     {
         $where = [];
         foreach ($_POST as $key => $i) {
             if (strpos($key, 'local') === 0) {
                 $palabra = str_replace('local_od_first_formularioFilter_', '', $key);
-                foreach ($this->dataQuery($palabra, $i) as $key => $i) {
-                    $where[] = "$i";
+                if (!empty($i[0])) {
+                    $where[] = "$palabra >= '$i[0]'";
+                }
+                if (!empty($data[1])) {
+                    $where[] = "$palabra <= '$i[1]'";
                 }
                 continue;
             }
@@ -145,8 +135,11 @@ class AdminFirstController extends ModuleAdminController
         $result = 'SELECT * FROM ' .  _DB_PREFIX_ . 'od_first_formulario ';
         if (count($where) > 0) {
             $result .= 'WHERE ';
+            $result .= implode(' AND ', $where);
         }
-        $result .= implode(' AND ', $where);
+        if ($orderBy) {
+            $result .= " ORDER BY $orderBy $orderWay";
+        }
         $_POST['od_first_formularioFilter_fecha'] = $_POST['local_od_first_formularioFilter_fecha'];
         $_POST['od_first_formularioFilter_fecha_creacion'] = $_POST['local_od_first_formularioFilter_fecha_creacion'];
         $_POST['od_first_formularioFilter_fecha_modificacion'] = $_POST['local_od_first_formularioFilter_fecha_modificacion'];
@@ -157,29 +150,18 @@ class AdminFirstController extends ModuleAdminController
     {
         $this->context->smarty->assign(
             [
-                'icono' => $value,
-                'enabled' => $this->iconCheck,
-                'disabled' => $this->iconClose,
+                'icono' => $value ? $this->iconClose : $this->iconCheck,
+                'id' => $value ? 'disabled' : 'enabled',
             ]
         );
-        return $this->context->smarty->fetch('file:C:/xampp/htdocs/prestashop/modules/od_first/views/templates/admin/icons.tpl');
-    }
-    public function deleteLine($nombre)
-    {
-        $resources = new Resources();
-        return $resources->delete($nombre);
+        return $this->context->smarty->fetch(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/icons.tpl');
     }
 
     public function list()
     {
         $list = new HelperList();
-        $list->orderBy = 'id';
-        $list->orderWay = 'asc';
-        if (Tools::getValue('od_first_formularioOrderby')) {
-            $list->orderBy = Tools::getValue('od_first_formularioOrderby');
-            $list->orderWay = Tools::getValue('od_first_formularioOrderway');
-        }
-        $sentence = " ORDER BY $list->orderBy $list->orderWay";
+        $list->orderBy = Tools::getValue('od_first_formularioOrderby', 'id');
+        $list->orderWay = Tools::getValue('od_first_formularioOrderway', 'asc');
         $list->simple_header = false;
         $list->shopLinkType = '';
         $list->no_link = true;
@@ -239,7 +221,7 @@ class AdminFirstController extends ModuleAdminController
             $this->processResetFilters($fields_list);
         }
         $total = Db::getInstance()->executeS($this->getQuery());
-        $resultado = Db::getInstance()->executeS($this->getQuery() . $sentence . $this->pagination());
+        $resultado = Db::getInstance()->executeS($this->getQuery($list->orderBy, $list->orderWay) . $this->pagination());
         $list->listTotal = count($total);
         return $list->generateList($resultado, $fields_list);
     }
@@ -259,7 +241,7 @@ class AdminFirstController extends ModuleAdminController
                 'lista' => $table_show,
             ]
         );
-        $tpl = $this->context->smarty->fetch('file:C:/xampp/htdocs/prestashop/modules/od_first/views/templates/admin/config.tpl');
+        $tpl = $this->context->smarty->fetch(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/config.tpl');
         $this->context->smarty->assign(
             [
                 'content' => $tpl
