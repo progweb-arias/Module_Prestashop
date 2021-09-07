@@ -10,16 +10,16 @@ class Resources
 {
     /**
      * Funcion validar campos
-     * @param string $texto 
-     * @param int $numero
-     * @param string $fecha
+     * @param string $nombre 
+     * @param string $edad
+     * @param string $fecha 
      * 
      * @return array      
      */
-    public function validate(string $nombre, string $edad, string $date)
+    public function validate(string $nombre, string $edad, string $fecha)
     {
         $resultados = ["correcto" => [], "error" => []];
-        $cadena = ["nombre" => $nombre, "edad" => $edad, "date" => $date];
+        $cadena = ["nombre" => $nombre, "edad" => $edad, "date" => $fecha];
         foreach ($cadena as $key => $i) {
             if (empty(trim($i))) {
                 $resultados["error"][] = $key;
@@ -29,12 +29,12 @@ class Resources
         }
         return $resultados;
     }
+
     /**
      * Funcion de validar y guardar los datos en una tabla
      * @param string $nombre
-     * @param int $edad  
+     * @param string $edad  
      * @param string $fecha
-     * @param string $borrado
      * @return bool
      */
     public function save_validate(string $nombre, string $edad, string $fecha)
@@ -47,8 +47,8 @@ class Resources
         return $variable;
     }
     /**
-     * Funcion de borrar en la tabla
-     * @param string $nombre
+     * Funcion de actualizar campo borrado en la tabla
+     * @param int $id
      * 
      * @return bool
      */
@@ -66,17 +66,17 @@ class Resources
      * @param string $fecha_hasta
      * @param string $borrado es la opcion de on y off de si esta borrado
      * @param string $fecha_eleccion
-     * @param string $boton1 que son los botones de las paginas
+     * @param string $page que son los botones de las paginas
      * 
      * @return array
      */
-    public function search(string $nombre, string $fecha_desde, string $fecha_hasta, string $borrado, string $fecha_eleccion, string $boton1)
+    public function search(string $nombre, string $fecha_desde, string $fecha_hasta, string $borrado, string $fecha_eleccion, string $page)
     {
         $array = ['Nombre' => $nombre, 'Fecha_creacion' => $fecha_desde, 'Fecha_creacion2' => $fecha_hasta, 'deleted' => $borrado];
         $query = "SELECT * FROM "  . _DB_PREFIX_ .  "formulario WHERE ";
         $where = [];
         $rows = 5;
-        $page = intval($boton1);
+        $page = intval($page);
         $limit = ($page * $rows);
         $offset = $rows;
         foreach ($array as $columna => $valor) {
@@ -84,26 +84,21 @@ class Resources
                 if (!empty(trim($valor))) {
                     $where[] =  "$columna LIKE '$valor%'";
                 }
-            } elseif ($columna == 'Fecha_creacion') {
+            } elseif (strpos($columna, 'Fecha')) {
                 if (!empty(trim($valor))) {
-                    $valor = date('Y-m-d', strtotime($fecha_desde));
+                    $valor = date('Y-m-d', strtotime($valor));
+                    if (!strpos($columna, 'creacion')) {
+                        $where[] = "$fecha_eleccion < '$valor'";
+                    }
                     $where[] = "$fecha_eleccion > '$valor'";
                 }
-            } elseif ($columna == 'Fecha_creacion2') {
-                if (!empty(trim($valor))) {
-                    $valor = date('Y-m-d', strtotime($fecha_hasta));
-                    $where[] = "$fecha_eleccion < '$valor'";
-                }
             } else {
-                if ($valor == 'true') {
-                    $where[] = "$columna=1";
-                } else {
+                if (!$valor) {
                     $where[] = "$columna=0";
                 }
+                $where[] = "$columna=1";
             }
-            continue;
         }
-
         $query .= implode(' AND ', $where);
         if (Db::getInstance()->executeS($query)) {
             $numero_registros = count(Db::getInstance()->executeS($query));
@@ -113,11 +108,8 @@ class Resources
     }
 
     /**
-     * Funcion actualizar campos
-     * @param string $nombre
-     * @param int $edad
-     * @param string $fecha
-     * @param string $fecha_desde
+     * Funcion actualizar campo borrado de la tabla de 1 a 0
+     * @param int $id
      * 
      * @return bool
      */
