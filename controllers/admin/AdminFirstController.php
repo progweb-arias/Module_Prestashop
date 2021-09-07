@@ -17,7 +17,7 @@ class AdminFirstController extends ModuleAdminController
         $resources = new Resources();
         return $resources->$action(
             Tools::getValue('nombre', ' '),
-            Tools::getValue('edad', ' '),
+            (int)Tools::getValue('edad', 0),
             Tools::getValue('fecha', ' ')
         );
     }
@@ -106,7 +106,7 @@ class AdminFirstController extends ModuleAdminController
         $limit = " LIMIT $inicio,$pagination";
         return $limit;
     }
-    public function getQuery($orderBy, $orderWay)
+    public function getQuery($orderBy = '', $orderWay = '')
     {
         $where = [];
         foreach ($_POST as $key => $i) {
@@ -137,7 +137,7 @@ class AdminFirstController extends ModuleAdminController
             $result .= 'WHERE ';
             $result .= implode(' AND ', $where);
         }
-        if ($orderBy) {
+        if (!empty(trim($orderBy))) {
             $result .= " ORDER BY $orderBy $orderWay";
         }
         $_POST['od_first_formularioFilter_fecha'] = $_POST['local_od_first_formularioFilter_fecha'];
