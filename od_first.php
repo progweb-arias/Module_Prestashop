@@ -27,41 +27,39 @@ class od_first extends Module
         $this->displayName = $this->l('Module Easy');
         $this->confirmUninstall = $this->l('Do you want delete this module?');
     }
-    public function installDb()
-    {
-        return Resources::installTable();
-    }
+
     public function install()
     {
-        return parent::install()
+        return Resources::installTable()
             && $this->registerHook('actionAdminControllerSetMedia')
-            && $this->installDb()
             && Configuration::updateValue('Nombre', ' ')
             && Configuration::updateValue('Edad', ' ')
-            && Configuration::updateValue('Fecha', ' ');
+            && Configuration::updateValue('Fecha', ' ')
+            && parent::install();
     }
-    public function uninstallDb()
-    {
-        return Resources::uninstallTable();
-    }
+
     public function uninstall()
     {
-        return parent::uninstall()
+        return Resources::uninstallTable()
             && $this->unregisterHook('actionAdminControllerSetMedia')
-            && $this->uninstallDb()
             && Configuration::deleteByName('Nombre')
             && Configuration::deleteByName('Edad')
-            && Configuration::deleteByName('Fecha');
+            && Configuration::deleteByName('Fecha')
+            && parent::uninstall();
     }
+
     public function getContent()
     {
         Tools::redirectAdmin($this->context->link->getAdminLink('AdminFirst'));
     }
+
     public function hookActionAdminControllerSetMedia()
     {
-        $end_point = $this->context->link->getAdminLink('AdminFirst');
-        Media::addJsDef(['od_module' => ['end_point' => $end_point]]);
-        $this->context->controller->addJS(_MODULE_DIR_ . 'od_first/views/js/od_first.js');
-        $this->context->controller->addCss(_MODULE_DIR_ . 'od_first/views/css/od_first.css');
+        if ('AdminFirst' === Tools::getValue('controller')) {
+            $end_point = $this->context->link->getAdminLink('AdminFirst');
+            Media::addJsDef(['od_module' => ['end_point' => $end_point]]);
+            $this->context->controller->addJS(_MODULE_DIR_ . 'od_first/views/js/od_first.js');
+            $this->context->controller->addCss(_MODULE_DIR_ . 'od_first/views/css/od_first.css');
+        }
     }
 }
