@@ -30,21 +30,22 @@ class od_first extends Module
 
     public function install()
     {
-        return Resources::installTable()
-            && $this->registerHook('actionAdminControllerSetMedia')
+        return
+            Resources::installTable()
             && Configuration::updateValue('Nombre', ' ')
             && Configuration::updateValue('Edad', ' ')
             && Configuration::updateValue('Fecha', ' ')
-            && parent::install();
+            && parent::install()
+            && $this->registerHook('actionAdminControllerSetMedia');
     }
 
     public function uninstall()
     {
         return Resources::uninstallTable()
-            && $this->unregisterHook('actionAdminControllerSetMedia')
             && Configuration::deleteByName('Nombre')
             && Configuration::deleteByName('Edad')
             && Configuration::deleteByName('Fecha')
+            && $this->unregisterHook('actionAdminControllerSetMedia')
             && parent::uninstall();
     }
 
