@@ -41,7 +41,7 @@ class Resources
     {
         $variable = $this->validate($nombre, $edad, $fecha);
         if (count($variable['correcto']) == 3) {
-            $fecha2 = date('Y-m-d', strtotime($fecha));
+            $fecha2 = date('Y-m-d', (int)strtotime($fecha));
             return Db::getInstance()->execute("INSERT INTO " . _DB_PREFIX_ . "od_first_formulario(nombre,edad,fecha,fecha_creacion,fecha_modificacion,borrado,fecha_borrado) VALUES('$nombre',$edad,'$fecha2',NOW(),NOW(), 0, NULL)");
         }
         return $variable;
@@ -55,7 +55,7 @@ class Resources
     public function delete(int $id)
     {
         if ($id > 0) {
-            return Db::getInstance()->execute("UPDATE " . _DB_PREFIX_ . "od_first_formulario SET borrado=1 , fecha_borrado=NOW() WHERE id='$id'");
+            return Db::getInstance()->execute("UPDATE " . _DB_PREFIX_ . "od_first_formulario SET fecha_modificacion = NOW() , borrado=1 , fecha_borrado=NOW() WHERE id= $id");
         }
         return [];
     }
@@ -116,7 +116,7 @@ class Resources
     public function update(int $id)
     {
         if ($id > 0) {
-            return Db::getInstance()->execute("UPDATE " . _DB_PREFIX_ . "od_first_formulario SET borrado='0', fecha_borrado= NULL WHERE id= $id");
+            return Db::getInstance()->execute("UPDATE " . _DB_PREFIX_ . "od_first_formulario SET fecha_modificacion = NOW(), borrado= 0 , fecha_borrado= NULL WHERE id= $id");
         }
         return [];
     }
