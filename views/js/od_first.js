@@ -98,16 +98,19 @@ $(document).ready(function(){
         changeYear: true,
         showOtherMonths: true,
         selectOtherMonths: true,
+        dateFormat: 'yy-mm-dd',
     });
 })
 $(document).on('click',"i[id='disabled']",function(){
     let pregunta=confirm("Deseas activar el campo?")
     if(pregunta==true){
-    callapi.call(this,dataCheck.call(this), function(data){
-        resultados=JSON.parse(data);
-        $(this).attr('id','enabled').html('check')
-        $(this).closest('tr').find('td').eq(7).empty()
-    }) 
+        callapi.call(this,dataCheck.call(this), function(data){
+            resultados=JSON.parse(data);
+            $(this).attr('id','enabled').html('check')
+            $(this).closest('tr').find('td').eq(5).hide();
+            $(this).closest('tr').find('td').eq(5).show().html(date());
+            $(this).closest('tr').find('td').eq(7).empty()
+        }) 
     }
 })
 $(document).on('click',"i[id='enabled']",function(){
@@ -116,6 +119,8 @@ $(document).on('click',"i[id='enabled']",function(){
     callapi.call(this,dataDelete.call(this), function(data){
         resultados=JSON.parse(data);
         $(this).attr('id','disabled').html('close')
+        $(this).closest('tr').find('td').eq(5).hide();
+        $(this).closest('tr').find('td').eq(5).show().html(date());
         $(this).closest('tr').find('td').eq(7).show().html(date());
     })
     }
