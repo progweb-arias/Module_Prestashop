@@ -115,7 +115,7 @@ class AdminFirstController extends ModuleAdminController
                 if (!empty($i[0])) {
                     $where[] = "$palabra >= '$i[0]'";
                 }
-                if (!empty($data[1])) {
+                if (!empty($i[1])) {
                     $where[] = "$palabra <= '$i[1]'";
                 }
                 continue;
